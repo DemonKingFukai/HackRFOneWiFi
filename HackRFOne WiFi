@@ -1,0 +1,41 @@
+#include <hackrf.h>
+#include <stdio.h>
+
+#define FREQUENCY_MIN 2400000000  // 2.4 GHz
+#define FREQUENCY_MAX 2500000000  // 2.5 GHz
+#define SAMPLE_RATE 2000000  // 2 MHz
+#define BANDWIDTH 2000000  // 2 MHz
+#define LNA_GAIN 16  // 16 dB
+#define VGA_GAIN 24  // 24 dB
+
+int main(int argc, char** argv) {
+  // Initialize the HackRF
+  hackrf_device* device;
+  hackrf_init();
+  hackrf_open(&device);
+
+  // Set the frequency range, sample rate, and bandwidth
+  hackrf_set_freq(device, FREQUENCY_MIN);
+  hackrf_set_sample_rate(device, SAMPLE_RATE);
+  hackrf_set_baseband_filter_bandwidth(device, BANDWIDTH);
+
+  // Set the LNA and VGA gain
+  hackrf_set_lna_gain(device, LNA_GAIN);
+  hackrf_set_vga_gain(device, VGA_GAIN);
+
+  // Start receiving data
+  hackrf_start_rx(device);
+
+  // Continuously read data and print it to the console
+  while (1) {
+    uint8_t buffer[8192];
+    int bytes_read;
+    hackrf_read(device, buffer, sizeof(buffer), &bytes_read);
+    fwrite(buffer, 1, bytes_read, stdout);
+  }
+
+  // Close the HackRF and exit
+  hackrf_close(device);
+  hackrf_exit();
+  return 0;
+}
